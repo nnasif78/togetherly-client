@@ -11,7 +11,6 @@ import {
   Leaf,
   MapPin,
   Sparkles,
-  Sprout,
   Trees,
   UsersRound,
 } from "lucide-react";
@@ -59,63 +58,33 @@ const initiatives = [
     number: "01",
     title: "Greener together",
     description: "From planting days to neighborhood cleanups, make care for the environment a team effort.",
-    Icon: Sprout,
-    art: "from-emerald-100 via-teal-50 to-lime-100 text-emerald-800 dark:from-emerald-950 dark:via-teal-950 dark:to-lime-950 dark:text-emerald-200",
+    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Volunteer tending young plants in a community garden",
   },
   {
     number: "02",
     title: "Knowledge in motion",
     description: "Create welcoming spaces to learn, mentor, and share what you know with your community.",
-    Icon: BookOpen,
-    art: "from-sky-100 via-blue-50 to-indigo-100 text-blue-800 dark:from-sky-950 dark:via-blue-950 dark:to-indigo-950 dark:text-blue-200",
+    image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Students learning together in a welcoming classroom",
   },
   {
     number: "03",
     title: "Care that connects",
     description: "Show up for neighbors through thoughtful acts, shared resources, and simple human connection.",
-    Icon: Heart,
-    art: "from-rose-100 via-pink-50 to-orange-100 text-rose-800 dark:from-rose-950 dark:via-pink-950 dark:to-orange-950 dark:text-rose-200",
+    image: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Community volunteers sharing donations and support",
   },
 ];
 
 function CommunityScene() {
   return (
-    <div className="relative mx-auto aspect-[1.05/1] w-full max-w-[34rem] overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-200 via-teal-100 to-amber-100 shadow-xl shadow-emerald-950/10 dark:from-emerald-950 dark:via-teal-950 dark:to-amber-950">
-      <div aria-hidden="true" className="absolute -right-20 -top-20 size-72 rounded-full bg-amber-200/80 dark:bg-amber-700/40" />
-      <div aria-hidden="true" className="absolute -bottom-36 -left-12 size-[28rem] rounded-full bg-emerald-500/20 dark:bg-emerald-400/10" />
-      <svg
-        aria-label="Neighbors working together in a community garden"
-        role="img"
-        viewBox="0 0 560 520"
-        className="absolute inset-0 size-full"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M0 370C82 335 168 368 264 352C365 335 460 338 560 365V520H0V370Z" fill="#50866F" />
-        <path d="M0 410C100 378 176 414 284 386C396 358 470 390 560 376V520H0V410Z" fill="#39735E" />
-        <path d="M0 459C113 421 195 461 302 432C389 408 487 423 560 409V520H0V459Z" fill="#2C6452" />
-        <path d="M88 343C82 282 105 232 145 197C183 232 207 286 193 351" fill="#6BAE78" />
-        <path d="M103 327C132 285 146 245 145 197M164 338C141 299 128 270 126 237" stroke="#E7F5D6" strokeWidth="5" strokeLinecap="round" />
-        <path d="M408 344C407 293 424 254 463 220C500 256 514 298 499 352" fill="#86B96B" />
-        <path d="M425 333C447 294 460 260 463 220M481 341C462 306 450 280 450 255" stroke="#F0F6D9" strokeWidth="5" strokeLinecap="round" />
-        <path d="M222 398C223 363 225 343 231 320" stroke="#EBC49E" strokeWidth="35" strokeLinecap="round" />
-        <path d="M282 395C287 360 292 342 304 322" stroke="#D59B72" strokeWidth="35" strokeLinecap="round" />
-        <path d="M359 397C355 363 350 343 341 323" stroke="#F1C8A1" strokeWidth="35" strokeLinecap="round" />
-        <path d="M200 351C203 321 220 301 247 302C274 304 287 329 283 357" fill="#28665A" />
-        <path d="M281 354C282 322 300 302 327 304C354 306 368 331 362 360" fill="#D87958" />
-        <circle cx="242" cy="278" r="26" fill="#B97956" />
-        <circle cx="320" cy="279" r="26" fill="#E5AD82" />
-        <path d="M216 276C214 253 226 240 246 241C260 242 268 252 268 270C251 262 236 263 216 276Z" fill="#3E3330" />
-        <path d="M294 271C293 248 306 235 326 238C344 240 353 255 347 274C332 259 313 261 294 271Z" fill="#49382F" />
-        <path d="M233 359L215 399M344 360L366 399M230 326L198 340M352 327L379 344" stroke="#F3D1AC" strokeWidth="14" strokeLinecap="round" />
-        <path d="M213 394H239M346 395H372" stroke="#2B4238" strokeWidth="14" strokeLinecap="round" />
-        <path d="M269 383C278 365 286 353 297 343" stroke="#F1C8A1" strokeWidth="12" strokeLinecap="round" />
-        <path d="M298 348C305 336 316 335 324 343L315 355L300 359" fill="#4B9366" />
-        <path d="M268 378C255 367 243 366 233 374L243 388L260 390" fill="#4B9366" />
-        <path d="M51 130H120M440 147H497" stroke="#FFFFFF" strokeOpacity=".55" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="473" cy="92" r="8" fill="#FFFFFF" fillOpacity=".75" />
-        <circle cx="86" cy="173" r="6" fill="#FFFFFF" fillOpacity=".7" />
-      </svg>
+    <div className="relative mx-auto aspect-[1.05/1] w-full max-w-[34rem] overflow-hidden rounded-[2rem] bg-emerald-950 shadow-xl shadow-emerald-950/10">
+      <img
+        src="https://images.unsplash.com/photo-1599059813005-11265ba4b4ce?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D"
+        className="absolute inset-0 size-full object-cover"
+      />
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-slate-950/10" />
       <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl border border-white/50 bg-white/80 p-4 text-slate-900 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 dark:text-white">
         <div>
           <p className="text-sm font-semibold">Good things grow together.</p>
@@ -249,13 +218,11 @@ export default function Home() {
             </p>
           </div>
           <div className="mt-9 grid gap-5 md:grid-cols-3">
-            {initiatives.map(({ number, title, description, Icon, art }) => (
+            {initiatives.map(({ number, title, description, image, imageAlt }) => (
               <article key={number} className="overflow-hidden rounded-2xl border border-brand-panel-border bg-card text-card-foreground shadow-sm">
-                <div className={`relative flex h-44 items-center justify-center overflow-hidden bg-gradient-to-br ${art}`}>
-                  <div aria-hidden="true" className="absolute -right-8 -top-12 size-40 rounded-full border border-current/15" />
-                  <div aria-hidden="true" className="absolute -bottom-16 -left-6 size-44 rounded-full border border-current/15" />
-                  <Icon aria-hidden="true" className="size-20 stroke-[1.2]" />
-                  <span className="absolute bottom-4 right-5 text-xs font-semibold uppercase tracking-[0.2em] opacity-60">Togetherly</span>
+                <div className="relative h-44 overflow-hidden bg-muted">
+                  <img src={image} alt={imageAlt} loading="lazy" className="size-full object-cover transition-transform duration-500 hover:scale-105" />
+                  <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/20 to-transparent" />
                 </div>
                 <div className="p-6">
                   <p className="text-xs font-semibold tracking-widest text-primary">{number} / COMMUNITY IDEA</p>
