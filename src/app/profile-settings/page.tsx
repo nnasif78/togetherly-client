@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import Breadcrumbs from "@/components/breadcrumbs";
 import PageHeading from "@/components/page-heading";
 import { LoaderCircle, Save, Settings } from "lucide-react";
+import { ProfileSkeleton } from "@/components/skeletons";
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function ProfileSettingsPage() {
   };
 
   if (isPending) {
-    return <main className="mx-auto flex min-h-[50vh] max-w-7xl items-center justify-center px-6 py-16 text-muted-foreground">Loading your profile...</main>;
+    return <ProfileSkeleton />;
   }
 
   if (!session) {

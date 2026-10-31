@@ -10,6 +10,7 @@ import { AlignLeft, CalendarDays, CalendarPlus, Check, Image as ImageIcon, Loade
 import { Button } from "@/components/ui/button";
 import PageHeading from "@/components/page-heading";
 import Breadcrumbs from "@/components/breadcrumbs";
+import { EventFormSkeleton } from "@/components/skeletons";
 
 function getLocalDateTimeMin() {
   const now = new Date();
@@ -23,9 +24,11 @@ const getServerDate = () => "";
 
 export default function CreateEventPage() {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [loading, setLoading] = useState(false);
   const minimumDateTime = useSyncExternalStore(subscribeToDate, getLocalDateTimeMin, getServerDate);
+
+  if (isPending) return <EventFormSkeleton withSidebar />;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

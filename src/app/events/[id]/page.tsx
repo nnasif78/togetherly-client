@@ -13,6 +13,8 @@ import ShareButton from "@/components/share-button";
 import { getEventCategoryStyles } from "@/lib/event-category";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { createEventSlug } from "@/lib/event-slug";
+import { EventDetailsSkeleton } from "@/components/skeletons";
+import LoadingImage from "@/components/loading-image";
 
 type Event = {
     _id: string;
@@ -28,7 +30,7 @@ type Event = {
 
 export default function EventDetailsPage() {
     return (
-        <Suspense fallback={<main className="px-6 py-16 text-center text-muted-foreground">Loading event...</main>}>
+        <Suspense fallback={<EventDetailsSkeleton />}>
             <EventDetailsContent />
         </Suspense>
     );
@@ -39,8 +41,9 @@ function EventDetailsContent() {
     const router = useRouter();
     const { data: session, isPending } = authClient.useSession();
     const [event, setEvent] = useState<Event | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [settledEventId, setSettledEventId] = useState<string | null>(null);
     const [joining, setJoining] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     useEffect(() => {
         const isMongoId = /^[a-f\d]{24}$/i.test(id);
@@ -59,8 +62,12 @@ function EventDetailsContent() {
                 if (isMongoId) router.replace(`/events/${canonicalSlug}`);
                 else if (id !== canonicalSlug) router.replace(`/events/${canonicalSlug}`);
             })
-            .catch((error) => toast.error(error.message))
-            .finally(() => setLoading(false));
+            .catch((error: unknown) => {
+                const message = error instanceof Error ? error.message : "Failed to load event.";
+                setLoadError(message);
+                toast.error(message);
+            })
+            .finally(() => setSettledEventId(id));
     }, [id, router]);
 
     const handleJoin = async () => {
@@ -94,13 +101,8 @@ function EventDetailsContent() {
         }
     };
 
-    if (loading) {
-        return (
-            <main className="flex items-center justify-center gap-2 px-6 py-16 text-muted-foreground">
-                <LoaderCircle aria-hidden="true" className="size-5 animate-spin" />
-                Loading event...
-            </main>
-        );
+    if (settledEventId !== id) {
+        return <EventDetailsSkeleton />;
     }
 
     if (!event) {
@@ -108,7 +110,8 @@ function EventDetailsContent() {
             <main className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
                 <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Upcoming Events", href: "/events" }, { label: "Event Details" }]} />
                 <div className="py-8 text-center">
-                    <h1 className="text-3xl font-bold">Event Not Found</h1>
+                    <h1 className="text-3xl font-bold">{loadError && loadError !== "Event not found." ? "Unable to load event" : "Event Not Found"}</h1>
+                    {loadError && loadError !== "Event not found." && <p role="alert" className="mt-3 text-muted-foreground">{loadError}</p>}
                     <Link href="/events" className="mt-4 inline-flex font-medium text-primary hover:underline">Back to Events</Link>
                 </div>
             </main>
@@ -123,7 +126,7 @@ function EventDetailsContent() {
         <main className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
             <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Upcoming Events", href: "/events" }, { label: "Event Details" }]} />
             {event.image ? (
-                <img src={event.image} alt={event.title} className="mb-7 h-64 w-full rounded-2xl object-cover shadow-sm sm:h-80" />
+                <LoadingImage src={event.image} alt={event.title} loading="eager" containerClassName="mb-7 h-64 w-full rounded-2xl shadow-sm sm:h-80" className="size-full object-cover" />
             ) : (
                 <div className={`relative mb-7 flex h-56 items-center justify-center overflow-hidden rounded-2xl border bg-gradient-to-br from-secondary via-background to-accent sm:h-72 ${getEventCategoryStyles(event.category)}`}>
                     <div aria-hidden="true" className="absolute -right-10 -top-20 size-64 rounded-full border border-current/10" />
@@ -175,7 +178,7 @@ function EventDetailsContent() {
                 <div className="mt-8 flex flex-wrap items-center gap-3">
                     <ShareButton />
                     {isPending ? (
-                        <p className="text-sm text-muted-foreground">Checking your account...</p>
+                        <span role="status" aria-label="Checking your account" aria-busy="true"><span className="sr-only">Checking your account</span><span aria-hidden="true" className="skeleton-shimmer inline-flex h-10 w-32 rounded-md" /></span>
                     ) : !session ? (
                         <div className="flex flex-wrap items-center gap-3">
                             <p className="text-sm text-muted-foreground">Sign in to join this event.</p>

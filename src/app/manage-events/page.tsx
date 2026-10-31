@@ -11,6 +11,7 @@ import EventCard from "@/components/event-card";
 import PageHeading from "@/components/page-heading";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { createEventSlug } from "@/lib/event-slug";
+import { EventListSkeleton, PageHeadingSkeleton } from "@/components/skeletons";
 
 type Event = {
     _id: string;
@@ -28,6 +29,7 @@ export default function ManageEventsPage() {
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
     const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!session?.user.id) return;
@@ -46,6 +48,7 @@ export default function ManageEventsPage() {
                 setEvents(data);
             } catch (error) {
                 console.error("Failed to load events:", error);
+                setLoadError("Your events could not be loaded. Please try again later.");
                 toast.error("Failed to load your events.");
             } finally {
                 setLoading(false);
@@ -81,9 +84,16 @@ export default function ManageEventsPage() {
         }
     };
 
-    if (isPending || loading) {
-        return         <main className="mx-auto flex min-h-[50vh] max-w-7xl items-center justify-center px-6 py-16 text-center text-muted-foreground">Loading your events...</main>;
+    if (isPending || (session && loading)) {
+        return (
+            <main className="mx-auto min-h-[50vh] max-w-7xl px-6 py-12 sm:py-16">
+                <PageHeadingSkeleton withAction />
+                <EventListSkeleton className="mt-8" withActions />
+            </main>
+        );
     }
+
+    if (!session) return null;
 
     return (
         <main className="mx-auto min-h-[50vh] max-w-7xl px-6 py-12 sm:py-16">
@@ -101,7 +111,9 @@ export default function ManageEventsPage() {
                 }
             />
 
-            {events.length === 0 ? (
+            {loadError ? (
+                <p role="alert" className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center text-sm text-muted-foreground">{loadError}</p>
+            ) : events.length === 0 ? (
                 <div className="mt-9 rounded-2xl border border-dashed bg-card px-6 py-14 text-center">
                     <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-secondary text-primary"><FolderKanban aria-hidden="true" className="size-5" /></span>
                     <h2 className="mt-4 text-xl font-semibold">Your first event starts with an idea</h2>

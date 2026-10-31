@@ -151,3 +151,36 @@
     @apply bg-background text-foreground;
   }
 }
+
+.skeleton-shimmer {
+  --skeleton-base: oklch(0.91 0.035 175);
+  --skeleton-highlight: oklch(0.98 0.01 175);
+  position: relative;
+  overflow: hidden;
+  background-color: var(--skeleton-base);
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    var(--skeleton-highlight) 48%,
+    transparent 76%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.35s ease-in-out infinite;
+}
+
+.dark .skeleton-shimmer {
+  --skeleton-base: oklch(0.31 0.035 185);
+  --skeleton-highlight: oklch(0.44 0.04 185);
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation-duration: 2.8s;
+  }
+}

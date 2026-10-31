@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { getEventCategoryStyles } from "@/lib/event-category";
 import { createEventSlug } from "@/lib/event-slug";
+import LoadingImage from "@/components/loading-image";
 
 type EventCardData = {
   _id: string;
@@ -64,9 +65,10 @@ export default function EventCard({ event, actions, showTime = false }: EventCar
     <article className="group flex flex-col overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg">
       <div className={`relative h-48 overflow-hidden bg-gradient-to-br ${artwork.style}`}>
         {event.image ? (
-          <img
+          <LoadingImage
             src={event.image}
             alt=""
+            containerClassName="size-full"
             className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (

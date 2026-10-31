@@ -9,6 +9,7 @@ import Link from "next/link";
 import PageHeading from "@/components/page-heading";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { CalendarDays, Compass, Search } from "lucide-react";
+import { EventListSkeleton, PageHeadingSkeleton } from "@/components/skeletons";
 
 type Event = {
     _id: string;
@@ -24,6 +25,7 @@ export default function JoinedEventsPage() {
     const { data: session, isPending } = authClient.useSession();
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!session?.user.id) return;
@@ -40,6 +42,7 @@ export default function JoinedEventsPage() {
                 setEvents(data.sort((first, second) => new Date(first.date).getTime() - new Date(second.date).getTime()));
             } catch (error) {
                 console.error("Failed to load joined events:", error);
+                setLoadError("Your joined events could not be loaded. Please try again later.");
                 toast.error(error instanceof Error ? error.message : "Failed to load joined events.");
             } finally {
                 setLoading(false);
@@ -50,8 +53,15 @@ export default function JoinedEventsPage() {
     }, [session?.user.id]);
 
     if (isPending || (session && loading)) {
-        return <main className="mx-auto flex min-h-[50vh] max-w-7xl items-center justify-center px-6 py-16 text-center text-muted-foreground">Loading your events...</main>;
+        return (
+            <main className="mx-auto min-h-[50vh] max-w-7xl px-6 py-12 sm:py-16">
+                <PageHeadingSkeleton withAction />
+                <EventListSkeleton className="mt-8" />
+            </main>
+        );
     }
+
+    if (!session) return null;
 
     return (
         <main className="mx-auto min-h-[50vh] max-w-7xl px-6 py-12 sm:py-16">
@@ -69,7 +79,9 @@ export default function JoinedEventsPage() {
                 }
             />
 
-            {events.length === 0 ? (
+            {loadError ? (
+                <p role="alert" className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center text-sm text-muted-foreground">{loadError}</p>
+            ) : events.length === 0 ? (
                 <div className="mt-9 rounded-2xl border border-dashed bg-card px-6 py-14 text-center">
                     <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-secondary text-primary"><CalendarDays aria-hidden="true" className="size-5" /></span>
                     <h2 className="mt-4 text-xl font-semibold">There&apos;s a place for you out there</h2>

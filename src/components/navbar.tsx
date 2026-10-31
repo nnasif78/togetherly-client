@@ -9,6 +9,8 @@ import { useTheme } from "next-themes";
 import { BookmarkCheck, CalendarDays, ClipboardList, LogIn, LogOut, Moon, Plus, Settings, Sun, SunMoon } from "lucide-react";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/skeletons";
+import LoadingImage from "@/components/loading-image";
 
 const subscribeToMount = () => () => {};
 const getMountedSnapshot = () => true;
@@ -80,14 +82,16 @@ export default function Navbar() {
               <SunMoon aria-hidden="true" />
             )}
           </Button>
-          {!isPending && (
+          {isPending ? (
+            <Skeleton className="size-10 rounded-full" />
+          ) : (
             user ? (
               <>
                 <details ref={profileMenuRef} className="group relative">
                   <summary aria-label="Open profile menu" className="flex cursor-pointer list-none items-center rounded-full focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
                     <div className="relative">
                       {user.image ? (
-                        <img src={user.image} alt={user.name || "Profile"} className="size-10 rounded-full border border-border object-cover" />
+                        <LoadingImage src={user.image} alt={user.name || "Profile"} containerClassName="size-10 rounded-full border border-border" className="size-full rounded-full object-cover" />
                       ) : (
                         <div className="flex size-10 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground">
                           {initials}

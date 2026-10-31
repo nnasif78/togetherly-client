@@ -15,6 +15,8 @@ import {
   UsersRound,
 } from "lucide-react";
 import EventCard from "@/components/event-card";
+import LoadingImage from "@/components/loading-image";
+import { EventListSkeleton, Skeleton } from "@/components/skeletons";
 
 type Event = {
   _id: string;
@@ -28,7 +30,7 @@ type Event = {
   image?: string;
 };
 
-async function getRecentEvents(): Promise<Event[]> {
+async function getRecentEvents(): Promise<Event[] | null> {
   await connection();
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recent-events`, {
@@ -40,7 +42,7 @@ async function getRecentEvents(): Promise<Event[]> {
     return response.json();
   } catch (error) {
     console.error("Recent events fetch error:", error);
-    return [];
+    return null;
   }
 }
 
@@ -80,8 +82,11 @@ const initiatives = [
 function CommunityScene() {
   return (
     <div className="relative mx-auto aspect-[1.05/1] w-full max-w-[34rem] overflow-hidden rounded-[2rem] bg-emerald-950 shadow-xl shadow-emerald-950/10">
-      <img
+      <LoadingImage
         src="https://images.unsplash.com/photo-1599059813005-11265ba4b4ce?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D"
+        alt="Community volunteers working together outdoors"
+        loading="eager"
+        containerClassName="absolute inset-0"
         className="absolute inset-0 size-full object-cover"
       />
       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-slate-950/10" />
@@ -221,7 +226,7 @@ export default function Home() {
             {initiatives.map(({ number, title, description, image, imageAlt }) => (
               <article key={number} className="overflow-hidden rounded-2xl border border-brand-panel-border bg-card text-card-foreground shadow-sm">
                 <div className="relative h-44 overflow-hidden bg-muted">
-                  <img src={image} alt={imageAlt} loading="lazy" className="size-full object-cover transition-transform duration-500 hover:scale-105" />
+                  <LoadingImage src={image} alt={imageAlt} className="size-full object-cover transition-transform duration-500 hover:scale-105" />
                   <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/20 to-transparent" />
                 </div>
                 <div className="p-6">
@@ -272,7 +277,7 @@ export default function Home() {
             },
           ].map(({ image, alt, label, title }) => (
             <article key={image} className="group relative h-64 overflow-hidden rounded-2xl bg-brand-panel shadow-sm">
-              <img src={image} alt={alt} loading="lazy" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <LoadingImage src={image} alt={alt} className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
               <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/15 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-100">{label}</p>
@@ -338,7 +343,11 @@ async function FeaturedEvents() {
         </Link>
       </div>
 
-      {events.length === 0 ? (
+      {events === null ? (
+        <p role="alert" className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center text-sm text-muted-foreground">
+          Featured events could not be loaded right now. Please try again later.
+        </p>
+      ) : events.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed bg-card px-6 py-12 text-center">
           <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-secondary text-primary"><CalendarDays aria-hidden="true" className="size-5" /></span>
           <h3 className="mt-4 text-lg font-semibold">Your next good thing is waiting</h3>
@@ -360,11 +369,15 @@ async function FeaturedEvents() {
 
 function FeaturedEventsFallback() {
   return (
-    <section id="featured-events" aria-label="Featured events" className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
-      <div className="h-8 w-64 animate-pulse rounded bg-muted" />
-      <div className="mt-3 h-5 w-96 max-w-full animate-pulse rounded bg-muted" />
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {[0, 1, 2].map((item) => <div key={item} className="h-80 animate-pulse rounded-2xl bg-muted" />)}
+    <section id="featured-events" aria-label="Featured events loading" className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
+      <div aria-busy="true">
+        <span className="sr-only">Loading featured events</span>
+        <div aria-hidden="true">
+          <Skeleton className="h-3 w-36" />
+          <Skeleton className="mt-4 h-10 w-80 max-w-full" />
+          <Skeleton className="mt-3 h-5 w-[min(36rem,90vw)]" />
+          <EventListSkeleton count={3} className="mt-8" />
+        </div>
       </div>
     </section>
   );

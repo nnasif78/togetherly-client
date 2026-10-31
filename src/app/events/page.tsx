@@ -4,6 +4,7 @@ import { CalendarDays } from "lucide-react";
 import Link from "next/link";
 import EventBrowser from "@/components/event-browser";
 import Breadcrumbs from "@/components/breadcrumbs";
+import { EventListSkeleton } from "@/components/skeletons";
 type Event = {
   _id: string;
   title: string;
@@ -13,7 +14,7 @@ type Event = {
   category: string;
 };
 
-async function getEvents(): Promise<Event[]> {
+async function getEvents(): Promise<Event[] | null> {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events`, { cache: "no-store" });
 
@@ -22,7 +23,7 @@ async function getEvents(): Promise<Event[]> {
     return response.json();
   } catch (error) {
     console.error("Events fetch error:", error);
-    return [];
+    return null;
   }
 }
 
@@ -40,7 +41,7 @@ export default function EventsPage({
         description="Discover a gathering that feels right for you and make a difference in your community."
         Icon={CalendarDays}
       />
-      <Suspense fallback={<p className="mt-10 text-center text-muted-foreground">Finding events for you...</p>}>
+      <Suspense fallback={<div className="mt-10"><EventListSkeleton /></div>}>
         <EventsContent searchParams={searchParams} />
       </Suspense>
     </main>
@@ -57,11 +58,19 @@ async function EventsContent({
 
   return (
     <>
-      <EventBrowser events={events} initialCategory={category} />
-      {events.length === 0 && (
+      {events === null ? (
+        <p role="alert" className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 px-6 py-10 text-center text-sm text-muted-foreground">
+          Upcoming events could not be loaded. Please try again later.
+        </p>
+      ) : (
+        <>
+          <EventBrowser events={events} initialCategory={category} />
+          {events.length === 0 && (
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Be the first to <Link href="/create-event" className="font-medium text-primary underline-offset-4 hover:underline">create an event</Link> for your community.
         </p>
+          )}
+        </>
       )}
     </>
   );

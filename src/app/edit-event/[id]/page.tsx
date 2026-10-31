@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import PageHeading from "@/components/page-heading";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { createEventSlug } from "@/lib/event-slug";
+import { EventFormSkeleton } from "@/components/skeletons";
 
 function getLocalDateTimeMin() {
   const now = new Date();
@@ -36,7 +37,7 @@ type Event = {
 
 export default function EditEventPage() {
   return (
-    <Suspense fallback={<main className="px-6 py-16 text-center text-muted-foreground">Loading event...</main>}>
+    <Suspense fallback={<EventFormSkeleton />}>
       <EditEventContent />
     </Suspense>
   );
@@ -48,11 +49,13 @@ function EditEventContent() {
   const { data: session, isPending } = authClient.useSession();
 
   const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [settledRequestKey, setSettledRequestKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [unauthorized, setUnauthorized] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [editingImage, setEditingImage] = useState(false);
   const minimumDateTime = useSyncExternalStore(subscribeToDate, getLocalDateTimeMin, getServerDate);
+  const requestKey = `${id}:${session?.user.id ?? ""}`;
 
   useEffect(() => {
     if (isPending) return;
@@ -86,8 +89,11 @@ function EditEventContent() {
         if (isMongoId) router.replace(`/edit-event/${canonicalSlug}`);
         else if (id !== canonicalSlug) router.replace(`/edit-event/${canonicalSlug}`);
       })
-      .catch(() => toast.error("Failed to load event."))
-      .finally(() => setLoading(false));
+      .catch((error: unknown) => {
+        setLoadError(error instanceof Error ? error.message : "Failed to load event.");
+        toast.error("Failed to load event.");
+      })
+      .finally(() => setSettledRequestKey(`${id}:${session.user.id}`));
   }, [id, session?.user.id, isPending, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -130,13 +136,13 @@ function EditEventContent() {
     }
   };
 
-  if (isPending || loading) return <main className="px-6 py-16 text-center">Loading event...</main>;
+  if (isPending || settledRequestKey !== requestKey) return <EventFormSkeleton />;
 
   if (unauthorized) {
     return <main className="px-6 py-16 text-center">You are not authorized to edit this event.</main>;
   }
 
-  if (!event) return <main className="px-6 py-16 text-center">Event not found.</main>;
+  if (!event) return <main className="mx-auto max-w-7xl px-6 py-16 text-center" role={loadError ? "alert" : undefined}>{loadError || "Event not found."}</main>;
 
   return (
     <main className="mx-auto min-h-[50vh] max-w-7xl px-6 py-12 sm:py-16">
