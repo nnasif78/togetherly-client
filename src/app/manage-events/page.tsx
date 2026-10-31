@@ -1,9 +1,9 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { authClient } from "../../lib/auth-client";
+import { getAuthToken } from "../../lib/get-auth-token";
 import { toast } from "sonner";
 
 type Event = {
@@ -18,33 +18,43 @@ type Event = {
 };
 
 export default function ManageEventsPage() {
-    const { data: session } = authClient.useSession();
+    const { data: session, isPending } = authClient.useSession();
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!session?.user.id) return;
 
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/my-events?userId=${session.user.id}`)
-            .then((response) => response.json())
-            .then((data: Event[]) => {
+        const loadEvents = async () => {
+            try {
+                const token = await getAuthToken();
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/my-events`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (!response.ok) throw new Error("Failed to load your events.");
+
+                const data: Event[] = await response.json();
                 setEvents(data);
-            })
-            .catch((error) => console.error("Failed to load events:", error))
-            .finally(() => setLoading(false));
+            } catch (error) {
+                console.error("Failed to load events:", error);
+                toast.error("Failed to load your events.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadEvents();
     }, [session?.user.id]);
 
     const handleDelete = async (eventId: string) => {
-        if (!session?.user.id) {
-            toast.error("Please log in first.");
-            return;
-        }
-
         try {
+            const token = await getAuthToken();
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}`, {
                 method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: session.user.id }),
+                headers: { Authorization: `Bearer ${token}` },
             });
 
             const result = await response.json();
@@ -58,7 +68,7 @@ export default function ManageEventsPage() {
         }
     };
 
-    if (loading) {
+    if (isPending || loading) {
         return <main className="px-6 py-16 text-center">Loading your events...</main>;
     }
 

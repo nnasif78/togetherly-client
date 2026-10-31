@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { authClient } from "../../lib/auth-client";
+import { getAuthToken } from "../../lib/get-auth-token";
 
 type Event = {
     _id: string;
@@ -22,14 +23,24 @@ export default function JoinedEventsPage() {
     useEffect(() => {
         if (!session?.user.id) return;
 
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/joined-events?userId=${session.user.id}`)
-            .then((response) => {
+        const loadJoinedEvents = async () => {
+            try {
+                const token = await getAuthToken();
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/joined-events`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
                 if (!response.ok) throw new Error("Failed to load joined events.");
-                return response.json();
-            })
-            .then((data: Event[]) => setEvents(data))
-            .catch(() => console.error("Failed to load joined events."))
-            .finally(() => setLoading(false));
+                const data: Event[] = await response.json();
+                setEvents(data);
+            } catch {
+                console.error("Failed to load joined events.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadJoinedEvents();
     }, [session?.user.id]);
 
     if (isPending || (session && loading)) {

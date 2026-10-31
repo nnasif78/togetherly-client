@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authClient } from "../../lib/auth-client";
+import { getAuthToken } from "../../lib/get-auth-token";
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -16,15 +17,16 @@ export default function CreateEventPage() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const event = {
-      ...Object.fromEntries(formData.entries()),
-      createdBy: session?.user.id,
-    };
+    const event = Object.fromEntries(formData.entries());
 
     try {
+      const token = await getAuthToken();
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(event),
       });
 

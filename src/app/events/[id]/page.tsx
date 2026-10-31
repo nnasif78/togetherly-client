@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { authClient } from "../../../lib/auth-client";
+import { getAuthToken } from "../../../lib/get-auth-token";
 import { toast } from "sonner";
 
 type Event = {
@@ -45,10 +46,10 @@ export default function EventDetailsPage() {
         setJoining(true);
 
         try {
+            const token = await getAuthToken();
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}/join`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: session.user.id }),
+                headers: { Authorization: `Bearer ${token}` },
             });
 
             const result = await response.json();

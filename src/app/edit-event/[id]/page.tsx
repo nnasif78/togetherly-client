@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { getAuthToken } from "../../../lib/get-auth-token";
 
 type Event = {
   title: string;
@@ -49,9 +50,13 @@ export default function EditEventPage() {
     setSaving(true);
 
     try {
+      const token = await getAuthToken();
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(event),
       });
 
