@@ -8,11 +8,13 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authClient } from "../../lib/auth-client";
 import { toast } from "sonner";
-
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -33,7 +35,7 @@ export default function RegisterPage() {
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
-
+  const router = useRouter();
   const onSubmit = async (data: RegisterFormData) => {
     setLoading(true);
 
@@ -52,14 +54,14 @@ export default function RegisterPage() {
       }
 
       toast.success("Account created successfully!");
-      window.location.href = "/";
+      router.push("/");
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleGoogleSignUp = async () => {
     await authClient.signIn.social({ provider: "google", callbackURL: "/" });
   };
