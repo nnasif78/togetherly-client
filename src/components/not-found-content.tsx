@@ -1,4 +1,4 @@
-import Link from "next/link";
+/* eslint-disable @next/next/no-html-link-for-pages -- Use full navigation to leave a stalled 404 transition. */
 import { ArrowRight, Compass } from "lucide-react";
 
 export default function NotFoundContent() {
@@ -18,19 +18,19 @@ export default function NotFoundContent() {
         We couldn&apos;t find the page you&apos;re looking for. It may have moved, or the link may be incorrect.
       </p>
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
-        <Link
+        <a
           href="/"
           className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_8%)] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           Back to home
-        </Link>
-        <Link
+        </a>
+        <a
           href="/events"
           className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-border bg-background px-5 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           Explore events
           <ArrowRight aria-hidden="true" className="size-4" />
-        </Link>
+        </a>
       </div>
     </section>
   );
