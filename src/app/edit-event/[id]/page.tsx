@@ -4,9 +4,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { authClient } from "../../../lib/auth-client";
 import { getAuthToken } from "../../../lib/get-auth-token";
 
 type Event = {
+  _id: string;
   title: string;
   description: string;
   date: string;
@@ -14,30 +16,46 @@ type Event = {
   category: string;
   maxParticipants: number;
   image?: string;
+  createdBy: string;
 };
 
 export default function EditEventPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/events`)
-      .then((response) => response.json())
-      .then((events: (Event & { _id: string })[]) => {
-        const foundEvent = events.find((item) => item._id === id);
-        if (foundEvent) {
-          setEvent({
-            ...foundEvent,
-            date: new Date(foundEvent.date).toISOString().slice(0, 16),
-          });
+    if (isPending) return;
+
+    if (!session?.user.id) {
+      router.replace("/login");
+      return;
+    }
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("Event not found.");
+        return response.json();
+      })
+      .then((foundEvent: Event) => {
+        if (foundEvent.createdBy !== session.user.id) {
+          setUnauthorized(true);
+          return;
         }
+
+        setEvent({
+          ...foundEvent,
+          date: new Date(foundEvent.date).toISOString().slice(0, 16),
+        });
       })
       .catch(() => toast.error("Failed to load event."))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, session?.user.id, isPending, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setEvent((previous) => previous ? { ...previous, [e.target.name]: e.target.value } : null);
@@ -73,7 +91,12 @@ export default function EditEventPage() {
     }
   };
 
-  if (loading) return <main className="px-6 py-16 text-center">Loading event...</main>;
+  if (isPending || loading) return <main className="px-6 py-16 text-center">Loading event...</main>;
+
+  if (unauthorized) {
+    return <main className="px-6 py-16 text-center">You are not authorized to edit this event.</main>;
+  }
+
   if (!event) return <main className="px-6 py-16 text-center">Event not found.</main>;
 
   return (
