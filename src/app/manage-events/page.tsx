@@ -25,10 +25,10 @@ export default function ManageEventsPage() {
     useEffect(() => {
         if (!session?.user.id) return;
 
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/events`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/my-events?userId=${session.user.id}`)
             .then((response) => response.json())
             .then((data: Event[]) => {
-                setEvents(data.filter((event) => event.createdBy === session.user.id));
+                setEvents(data);
             })
             .catch((error) => console.error("Failed to load events:", error))
             .finally(() => setLoading(false));

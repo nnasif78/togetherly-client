@@ -22,11 +22,12 @@ export default function JoinedEventsPage() {
     useEffect(() => {
         if (!session?.user.id) return;
 
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/events`)
-            .then((response) => response.json())
-            .then((data: Event[]) => {
-                setEvents(data.filter((event) => event.participants?.includes(session.user.id)));
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/joined-events?userId=${session.user.id}`)
+            .then((response) => {
+                if (!response.ok) throw new Error("Failed to load joined events.");
+                return response.json();
             })
+            .then((data: Event[]) => setEvents(data))
             .catch(() => console.error("Failed to load joined events."))
             .finally(() => setLoading(false));
     }, [session?.user.id]);
