@@ -5,10 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "../lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
+import { useSyncExternalStore } from "react";
+
+const subscribeToMount = () => () => {};
+const getMountedSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export default function Navbar() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const { theme, setTheme } = useTheme();
+  const mounted = useSyncExternalStore(subscribeToMount, getMountedSnapshot, getServerSnapshot);
 
   const user = session?.user;
   const initials = user?.name?.charAt(0).toUpperCase() || "U";
@@ -38,6 +47,20 @@ export default function Navbar() {
           </Link>
         </div>
         <div className="flex items-center justify-self-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={mounted ? (theme === "dark" ? "Switch to light theme" : "Switch to dark theme") : "Toggle theme"}
+            title={mounted ? (theme === "dark" ? "Switch to light theme" : "Switch to dark theme") : "Toggle theme"}
+          >
+            {mounted ? (
+              theme === "dark" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />
+            ) : (
+              <span aria-hidden="true" className="text-base">◐</span>
+            )}
+          </Button>
           {!isPending && (
             user ? (
               <>

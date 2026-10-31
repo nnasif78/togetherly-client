@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const loginSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
+  email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -52,6 +52,11 @@ export default function LoginPage() {
     }
   };
 
+  const onInvalid = (formErrors: typeof errors) => {
+    const firstError = Object.values(formErrors).find((error) => error?.message)?.message;
+    toast.error(typeof firstError === "string" ? firstError : "Please enter a valid email and password.");
+  };
+
   const handleGoogleLogin = async () => {
     await authClient.signIn.social({ provider: "google", callbackURL: "/" });
   };
@@ -65,7 +70,7 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form noValidate onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />

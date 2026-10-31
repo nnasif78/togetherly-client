@@ -7,6 +7,12 @@ import { toast } from "sonner";
 import { authClient } from "../../lib/auth-client";
 import { getAuthToken } from "../../lib/get-auth-token";
 
+function getLocalDateTimeMin() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 16);
+}
+
 export default function CreateEventPage() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
@@ -14,9 +20,17 @@ export default function CreateEventPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    const dateValue = formData.get("date");
+    const eventDate = typeof dateValue === "string" ? new Date(dateValue) : null;
+
+    if (!eventDate || !Number.isFinite(eventDate.getTime()) || eventDate.getTime() <= Date.now()) {
+      toast.error("Please choose a valid future date and time for the event.");
+      return;
+    }
+
+    setLoading(true);
     const event = Object.fromEntries(formData.entries());
 
     try {
@@ -62,7 +76,7 @@ export default function CreateEventPage() {
 
         <div>
           <label className="mb-2 block text-sm font-medium">Date and Time</label>
-          <input name="date" type="datetime-local" required className="w-full rounded-md border bg-background px-3 py-2" />
+          <input name="date" type="datetime-local" min={getLocalDateTimeMin()} required className="w-full rounded-md border bg-background px-3 py-2" />
         </div>
 
         <div>

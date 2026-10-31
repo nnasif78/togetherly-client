@@ -17,9 +17,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 
 const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Enter a valid email address"),
-  image: z.string().url("Enter a valid image URL").optional().or(z.literal("")),
+  name: z.string().trim().min(1, "Name is required"),
+  email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
+  photoURL: z.string().trim().min(1, "Photo URL is required").url("Enter a valid photo URL"),
   password: z.string().min(6, "Password must be at least 6 characters").regex(/[A-Z]/, "Password must contain an uppercase letter").regex(/[a-z]/, "Password must contain a lowercase letter"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -44,7 +44,7 @@ export default function RegisterPage() {
         name: data.name,
         email: data.email,
         password: data.password,
-        image: data.image || undefined,
+        image: data.photoURL,
         callbackURL: "/",
       });
 
@@ -61,6 +61,11 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  const onInvalid = (formErrors: typeof errors) => {
+    const firstError = Object.values(formErrors).find((error) => error?.message)?.message;
+    toast.error(typeof firstError === "string" ? firstError : "Please correct the highlighted fields.");
+  };
   
   const handleGoogleSignUp = async () => {
     await authClient.signIn.social({ provider: "google", callbackURL: "/" });
@@ -75,7 +80,7 @@ export default function RegisterPage() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form noValidate onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input id="name" placeholder="Your name" {...register("name")} />
@@ -89,9 +94,9 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">Profile Image URL (Optional)</Label>
-              <Input id="image" placeholder="https://example.com/photo.jpg" {...register("image")} />
-              {errors.image && <p className="text-sm text-destructive">{errors.image.message}</p>}
+              <Label htmlFor="photoURL">Profile Photo URL</Label>
+              <Input id="photoURL" type="url" placeholder="https://example.com/photo.jpg" {...register("photoURL")} />
+              {errors.photoURL && <p className="text-sm text-destructive">{errors.photoURL.message}</p>}
             </div>
 
             <div className="space-y-2">

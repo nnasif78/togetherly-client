@@ -7,6 +7,12 @@ import { toast } from "sonner";
 import { authClient } from "../../../lib/auth-client";
 import { getAuthToken } from "../../../lib/get-auth-token";
 
+function getLocalDateTimeMin() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 16);
+}
+
 type Event = {
   _id: string;
   title: string;
@@ -65,6 +71,12 @@ export default function EditEventPage() {
     e.preventDefault();
     if (!event) return;
 
+    const eventDate = new Date(event.date);
+    if (!Number.isFinite(eventDate.getTime()) || eventDate.getTime() <= Date.now()) {
+      toast.error("Please choose a valid future date and time for the event.");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -117,7 +129,7 @@ export default function EditEventPage() {
 
         <div>
           <label className="mb-2 block text-sm font-medium">Date and Time</label>
-          <input name="date" type="datetime-local" value={event.date} onChange={handleChange} required className="w-full rounded-md border bg-background px-3 py-2" />
+          <input name="date" type="datetime-local" min={getLocalDateTimeMin()} value={event.date} onChange={handleChange} required className="w-full rounded-md border bg-background px-3 py-2" />
         </div>
 
         <div>
