@@ -39,7 +39,7 @@
 - Create events, update or delete events you own, and review events you have joined.
 - Switch the site theme and share event links.
 
-Public event discovery is available without signing in. An account is needed for event details and actions such as creating, joining, or managing events.
+Public event discovery and event details are available without signing in. An account is needed to join events and to create or manage events.
 
 ## How it works
 
@@ -63,7 +63,7 @@ The frontend is a Next.js App Router application. It reads public event data fro
 | `/` | Landing page and a short list of recent events | Public |
 | `/events` | Upcoming event catalogue with search and cause filters | Public |
 | `/events?category=Environment` | Catalogue filtered by category; search is client-side | Public |
-| `/events/[id]` | Event detail and join action; IDs and title-date slugs are supported | Signed in |
+| `/events/[id]` | Public event details; sign in to join | Public |
 | `/login` | Email/password or Google sign-in | Public |
 | `/register` | Account creation | Public |
 | `/create-event` | Publish an event with a future date and capacity | Signed in |

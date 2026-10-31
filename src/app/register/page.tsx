@@ -23,7 +23,7 @@ import PasswordRequirements from "@/components/password-requirements";
 const registerSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
-  photoURL: z.string().trim().min(1, "Photo URL is required").url("Enter a valid photo URL"),
+  photoURL: z.string().trim().refine((value) => !value || z.url().safeParse(value).success, "Enter a valid photo URL"),
   password: z.string().min(6, "Password must be at least 6 characters").regex(/[A-Z]/, "Password must contain an uppercase letter").regex(/[a-z]/, "Password must contain a lowercase letter"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -52,7 +52,7 @@ export default function RegisterPage() {
         name: data.name,
         email: data.email,
         password: data.password,
-        image: data.photoURL,
+        image: data.photoURL || undefined,
         callbackURL: "/",
       });
 
@@ -114,7 +114,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="photoURL" className="gap-2"><ImageIcon aria-hidden="true" className="size-4 text-primary" />Profile photo URL</Label>
+              <Label htmlFor="photoURL" className="gap-2"><ImageIcon aria-hidden="true" className="size-4 text-primary" />Profile photo URL <span className="font-normal text-muted-foreground">· optional</span></Label>
               <Input id="photoURL" type="url" autoComplete="url" placeholder="Paste a profile photo link" aria-invalid={Boolean(errors.photoURL)} aria-describedby={errors.photoURL ? "register-photo-error" : undefined} {...register("photoURL")} />
               {errors.photoURL && <p id="register-photo-error" className="text-sm text-destructive">{errors.photoURL.message}</p>}
             </div>
