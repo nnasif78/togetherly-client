@@ -1,7 +1,7 @@
 import { Check, Circle } from "lucide-react";
 
 const requirements = [
-  { label: "At least 8 characters", test: (password: string) => password.length >= 8 },
+  { label: "At least 6 characters", test: (password: string) => password.length >= 6 },
   { label: "At least 1 uppercase letter", test: (password: string) => /[A-Z]/.test(password) },
   { label: "At least 1 lowercase letter", test: (password: string) => /[a-z]/.test(password) },
 ];
