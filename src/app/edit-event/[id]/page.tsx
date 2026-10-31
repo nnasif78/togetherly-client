@@ -1,17 +1,26 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authClient } from "../../../lib/auth-client";
 import { getAuthToken } from "../../../lib/get-auth-token";
+import { AlignLeft, CalendarDays, Image as ImageIcon, LoaderCircle, MapPin, Save, Tag, Type, UsersRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import PageHeading from "@/components/page-heading";
+import Breadcrumbs from "@/components/breadcrumbs";
+import { createEventSlug } from "@/lib/event-slug";
 
 function getLocalDateTimeMin() {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   return now.toISOString().slice(0, 16);
 }
+
+const fieldClassName = "w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+const subscribeToDate = () => () => {};
+const getServerDate = () => "";
 
 type Event = {
   _id: string;
@@ -26,6 +35,14 @@ type Event = {
 };
 
 export default function EditEventPage() {
+  return (
+    <Suspense fallback={<main className="px-6 py-16 text-center text-muted-foreground">Loading event...</main>}>
+      <EditEventContent />
+    </Suspense>
+  );
+}
+
+function EditEventContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -34,6 +51,8 @@ export default function EditEventPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [unauthorized, setUnauthorized] = useState(false);
+  const [editingImage, setEditingImage] = useState(false);
+  const minimumDateTime = useSyncExternalStore(subscribeToDate, getLocalDateTimeMin, getServerDate);
 
   useEffect(() => {
     if (isPending) return;
@@ -43,7 +62,12 @@ export default function EditEventPage() {
       return;
     }
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}`)
+    const isMongoId = /^[a-f\d]{24}$/i.test(id);
+    const eventEndpoint = isMongoId
+      ? `${process.env.NEXT_PUBLIC_API_URL}/events/${id}`
+      : `${process.env.NEXT_PUBLIC_API_URL}/events/by-slug/${encodeURIComponent(id)}`;
+
+    fetch(eventEndpoint)
       .then((response) => {
         if (!response.ok) throw new Error("Event not found.");
         return response.json();
@@ -58,6 +82,9 @@ export default function EditEventPage() {
           ...foundEvent,
           date: new Date(foundEvent.date).toISOString().slice(0, 16),
         });
+        const canonicalSlug = createEventSlug(foundEvent);
+        if (isMongoId) router.replace(`/edit-event/${canonicalSlug}`);
+        else if (id !== canonicalSlug) router.replace(`/edit-event/${canonicalSlug}`);
       })
       .catch(() => toast.error("Failed to load event."))
       .finally(() => setLoading(false));
@@ -81,7 +108,7 @@ export default function EditEventPage() {
 
     try {
       const token = await getAuthToken();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${event._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -112,34 +139,43 @@ export default function EditEventPage() {
   if (!event) return <main className="px-6 py-16 text-center">Event not found.</main>;
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
-      <h1 className="text-3xl font-bold">Edit Event</h1>
-      <p className="mt-2 text-muted-foreground">Update your event information.</p>
+    <main className="mx-auto min-h-[50vh] max-w-7xl px-6 py-12 sm:py-16">
+      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Manage Events", href: "/manage-events" }, { label: "Edit Event" }]} />
+      <PageHeading
+        eyebrow="Keep everyone in the loop"
+        title="Edit your event"
+        description="Update the details so people know what to expect."
+        Icon={Save}
+      />
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-        <div>
-          <label className="mb-2 block text-sm font-medium">Event Title</label>
-          <input name="title" value={event.title} onChange={handleChange} required className="w-full rounded-md border bg-background px-3 py-2" />
+      <form onSubmit={handleSubmit} className="mt-9 space-y-6 rounded-2xl border bg-card p-5 shadow-sm sm:p-8">
+        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-2 sm:col-span-2">
+          <label htmlFor="title" className="flex items-center gap-2 text-sm font-medium"><Type aria-hidden="true" className="size-4 text-primary" />Event title</label>
+          <input id="title" name="title" value={event.title} onChange={handleChange} required className={fieldClassName} />
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Description</label>
-          <textarea name="description" value={event.description} onChange={handleChange} required rows={4} className="w-full rounded-md border bg-background px-3 py-2" />
+        <div className="space-y-2 sm:col-span-2">
+          <label htmlFor="description" className="flex items-center gap-2 text-sm font-medium"><AlignLeft aria-hidden="true" className="size-4 text-primary" />Description</label>
+          <textarea id="description" name="description" value={event.description} onChange={handleChange} required rows={5} className={`${fieldClassName} resize-y`} />
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Date and Time</label>
-          <input name="date" type="datetime-local" min={getLocalDateTimeMin()} value={event.date} onChange={handleChange} required className="w-full rounded-md border bg-background px-3 py-2" />
+        <div className="space-y-2">
+          <label htmlFor="date" className="flex items-center gap-2 text-sm font-medium"><CalendarDays aria-hidden="true" className="size-4 text-primary" />Date and time</label>
+          <input id="date" name="date" type="datetime-local" min={minimumDateTime} value={event.date} onChange={handleChange} required className={fieldClassName} />
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Location</label>
-          <input name="location" value={event.location} onChange={handleChange} required className="w-full rounded-md border bg-background px-3 py-2" />
+        <div className="space-y-2">
+          <label htmlFor="location" className="flex items-center gap-2 text-sm font-medium"><MapPin aria-hidden="true" className="size-4 text-primary" />Location</label>
+          <input id="location" name="location" value={event.location} onChange={handleChange} required className={fieldClassName} />
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Category</label>
-          <select name="category" value={event.category} onChange={handleChange} required className="w-full rounded-md border bg-background px-3 py-2">
+        <div className="space-y-2">
+          <label htmlFor="category" className="flex items-center gap-2 text-sm font-medium"><Tag aria-hidden="true" className="size-4 text-primary" />Category</label>
+          <select id="category" name="category" value={event.category} onChange={handleChange} required className={fieldClassName}>
+            <option value="Cleanup">Cleanup</option>
+            <option value="Plantation">Plantation</option>
+            <option value="Donation">Donation</option>
             <option value="Environment">Environment</option>
             <option value="Education">Education</option>
             <option value="Health">Health</option>
@@ -149,19 +185,40 @@ export default function EditEventPage() {
           </select>
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Maximum Participants</label>
-          <input name="maxParticipants" type="number" min="1" value={event.maxParticipants} onChange={handleChange} required className="w-full rounded-md border bg-background px-3 py-2" />
+        <div className="space-y-2">
+          <label htmlFor="maxParticipants" className="flex items-center gap-2 text-sm font-medium"><UsersRound aria-hidden="true" className="size-4 text-primary" />Maximum participants</label>
+          <input id="maxParticipants" name="maxParticipants" type="number" min="1" value={event.maxParticipants} onChange={handleChange} required className={fieldClassName} />
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Image URL (Optional)</label>
-          <input name="image" type="url" value={event.image || ""} onChange={handleChange} className="w-full rounded-md border bg-background px-3 py-2" />
+        <div className="space-y-3 sm:col-span-2">
+          <p className="flex items-center gap-2 text-sm font-medium">
+            <ImageIcon aria-hidden="true" className="size-4 text-primary" />
+            Event photo
+            <span className="font-normal text-muted-foreground">· optional</span>
+          </p>
+          {event.image && !editingImage && (
+            <p className="text-sm text-muted-foreground">A photo is currently attached to this event.</p>
+          )}
+          {editingImage ? (
+            <div className="space-y-2">
+              <label htmlFor="image" className="text-sm text-muted-foreground">Photo link</label>
+              <input id="image" name="image" type="url" value={event.image || ""} onChange={handleChange} placeholder="Paste an image link" className={fieldClassName} />
+            </div>
+          ) : (
+            <Button type="button" variant="outline" onClick={() => setEditingImage(true)}>
+              <ImageIcon aria-hidden="true" />
+              {event.image ? "Change photo link" : "Add photo link"}
+            </Button>
+          )}
+        </div>
         </div>
 
-        <button type="submit" disabled={saving} className="w-full rounded-md bg-primary px-4 py-3 font-medium text-primary-foreground disabled:opacity-50">
-          {saving ? "Saving Changes..." : "Update Event"}
-        </button>
+        <div className="border-t pt-5">
+        <Button type="submit" disabled={saving} className="h-11 w-full sm:w-auto">
+          {saving ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : <Save aria-hidden="true" />}
+          {saving ? "Saving changes..." : "Update event"}
+        </Button>
+        </div>
       </form>
     </main>
   );

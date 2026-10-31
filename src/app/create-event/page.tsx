@@ -1,11 +1,15 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authClient } from "../../lib/auth-client";
 import { getAuthToken } from "../../lib/get-auth-token";
+import { AlignLeft, CalendarDays, CalendarPlus, Check, Image as ImageIcon, LoaderCircle, MapPin, Tag, Type, UsersRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import PageHeading from "@/components/page-heading";
+import Breadcrumbs from "@/components/breadcrumbs";
 
 function getLocalDateTimeMin() {
   const now = new Date();
@@ -13,10 +17,15 @@ function getLocalDateTimeMin() {
   return now.toISOString().slice(0, 16);
 }
 
+const fieldClassName = "w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/70 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+const subscribeToDate = () => () => {};
+const getServerDate = () => "";
+
 export default function CreateEventPage() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const [loading, setLoading] = useState(false);
+  const minimumDateTime = useSyncExternalStore(subscribeToDate, getLocalDateTimeMin, getServerDate);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -59,58 +68,90 @@ export default function CreateEventPage() {
   };
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
-      <h1 className="text-3xl font-bold">Create Event</h1>
-      <p className="mt-2 text-muted-foreground">Create an event and bring your community together.</p>
+    <main className="mx-auto min-h-[50vh] max-w-7xl px-6 py-12 sm:py-16">
+      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Create Event" }]} />
+      <PageHeading
+        eyebrow="Bring people together"
+        title="Create an event"
+        description="Turn an idea into a reason for your community to come together."
+        Icon={CalendarPlus}
+      />
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-        <div>
-          <label className="mb-2 block text-sm font-medium">Event Title</label>
-          <input name="title" required placeholder="Enter event title" className="w-full rounded-md border bg-background px-3 py-2" />
-        </div>
+      <div className="mt-9 grid items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(16rem,0.75fr)]">
+        <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border bg-card p-5 shadow-sm sm:p-8">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
+              <label htmlFor="title" className="flex items-center gap-2 text-sm font-medium"><Type aria-hidden="true" className="size-4 text-primary" />Event title</label>
+              <input id="title" name="title" required placeholder="Give your event a name" className={fieldClassName} />
+            </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Description</label>
-          <textarea name="description" required rows={4} placeholder="Describe your event" className="w-full rounded-md border bg-background px-3 py-2" />
-        </div>
+            <div className="space-y-2 sm:col-span-2">
+              <label htmlFor="description" className="flex items-center gap-2 text-sm font-medium"><AlignLeft aria-hidden="true" className="size-4 text-primary" />What is it about?</label>
+              <textarea id="description" name="description" required rows={5} placeholder="Tell people what you'll do and why they might like to join." className={`${fieldClassName} resize-y`} />
+            </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Date and Time</label>
-          <input name="date" type="datetime-local" min={getLocalDateTimeMin()} required className="w-full rounded-md border bg-background px-3 py-2" />
-        </div>
+            <div className="space-y-2">
+              <label htmlFor="date" className="flex items-center gap-2 text-sm font-medium"><CalendarDays aria-hidden="true" className="size-4 text-primary" />Date and time</label>
+              <input id="date" name="date" type="datetime-local" min={minimumDateTime} required className={fieldClassName} />
+            </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Location</label>
-          <input name="location" required placeholder="Enter event location" className="w-full rounded-md border bg-background px-3 py-2" />
-        </div>
+            <div className="space-y-2">
+              <label htmlFor="location" className="flex items-center gap-2 text-sm font-medium"><MapPin aria-hidden="true" className="size-4 text-primary" />Where will you meet?</label>
+              <input id="location" name="location" required placeholder="Add a place or address" className={fieldClassName} />
+            </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Category</label>
-          <select name="category" required defaultValue="" className="w-full rounded-md border bg-background px-3 py-2">
-            <option value="" disabled>Select a category</option>
-            <option value="Environment">Environment</option>
-            <option value="Education">Education</option>
-            <option value="Health">Health</option>
-            <option value="Community">Community</option>
-            <option value="Charity">Charity</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
+            <div className="space-y-2">
+              <label htmlFor="category" className="flex items-center gap-2 text-sm font-medium"><Tag aria-hidden="true" className="size-4 text-primary" />Choose a cause</label>
+              <select id="category" name="category" required defaultValue="" className={fieldClassName}>
+                <option value="" disabled>Select a category</option>
+                <option value="Cleanup">Cleanup</option>
+                <option value="Plantation">Plantation</option>
+                <option value="Donation">Donation</option>
+                <option value="Environment">Environment</option>
+                <option value="Education">Education</option>
+                <option value="Health">Health</option>
+                <option value="Community">Community</option>
+                <option value="Charity">Charity</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Maximum Participants</label>
-          <input name="maxParticipants" type="number" min="1" required placeholder="e.g. 50" className="w-full rounded-md border bg-background px-3 py-2" />
-        </div>
+            <div className="space-y-2">
+              <label htmlFor="maxParticipants" className="flex items-center gap-2 text-sm font-medium"><UsersRound aria-hidden="true" className="size-4 text-primary" />Group size</label>
+              <input id="maxParticipants" name="maxParticipants" type="number" min="1" required placeholder="e.g. 20 people" className={fieldClassName} />
+            </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">Image URL (Optional)</label>
-          <input name="image" type="url" placeholder="https://example.com/image.jpg" className="w-full rounded-md border bg-background px-3 py-2" />
-        </div>
+            <div className="space-y-2 sm:col-span-2">
+              <label htmlFor="image" className="flex items-center gap-2 text-sm font-medium"><ImageIcon aria-hidden="true" className="size-4 text-primary" />Event photo link <span className="font-normal text-muted-foreground">· optional</span></label>
+              <input id="image" name="image" type="url" placeholder="Paste an image link" className={fieldClassName} />
+              <p className="text-xs text-muted-foreground">A photo helps people picture the day.</p>
+            </div>
+          </div>
 
-        <button type="submit" disabled={loading || !session} className="w-full rounded-md bg-primary px-4 py-3 font-medium text-primary-foreground disabled:opacity-50">
-          {loading ? "Creating Event..." : "Create Event"}
-        </button>
-      </form>
+          <div className="border-t pt-5">
+            <Button type="submit" disabled={loading || !session} className="h-11 w-full sm:w-auto">
+              {loading ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : <CalendarPlus aria-hidden="true" />}
+              {loading ? "Creating event..." : "Create event"}
+            </Button>
+          </div>
+        </form>
+
+        <aside className="rounded-2xl bg-secondary/60 p-6 sm:p-7">
+          <span className="flex size-11 items-center justify-center rounded-xl bg-background text-primary shadow-sm">
+            <Check aria-hidden="true" className="size-5" />
+          </span>
+          <h2 className="mt-5 text-lg font-semibold">A few things that help</h2>
+          <ul className="mt-4 space-y-4 text-sm leading-6 text-muted-foreground">
+            <li className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />Make the event welcoming to people joining for the first time.</li>
+            <li className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />Be clear about when and where everyone will meet.</li>
+            <li className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />Tell people what to expect and what to bring.</li>
+          </ul>
+          <div className="mt-7 rounded-xl border bg-background p-4">
+            <p className="text-sm font-semibold">Every gathering starts somewhere.</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">Thanks for creating a place for people to show up for one another.</p>
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }
