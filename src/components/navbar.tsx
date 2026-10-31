@@ -38,7 +38,6 @@ export default function Navbar() {
     try {
       await authClient.signOut();
       toast.success("You have been logged out.");
-      router.push("/");
       router.refresh();
     } catch {
       toast.error("Unable to log out. Please try again.");
@@ -120,7 +119,7 @@ export default function Navbar() {
                 </Button>
               </>
             ) : (
-              <Button size="icon-sm" onClick={() => router.push("/login")} aria-label="Log in" title="Log in" className="sm:w-auto sm:px-3">
+              <Button size="icon-sm" onClick={() => router.push(`/login?returnTo=${encodeURIComponent(`${window.location.pathname}${window.location.search}${window.location.hash}`)}`)} aria-label="Log in" title="Log in" className="sm:w-auto sm:px-3">
                 <LogIn aria-hidden="true" />
                 <span className="hidden sm:inline">Log in</span>
               </Button>

@@ -17,6 +17,7 @@ import { ArrowRight, Eye, EyeOff, LoaderCircle, LogIn, Mail, LockKeyhole } from 
 import AuthPanel from "@/components/auth-panel";
 import GoogleIcon from "@/components/google-icon";
 import Breadcrumbs from "@/components/breadcrumbs";
+import { getSafeReturnTo } from "@/lib/auth-redirect";
 
 const loginSchema = z.object({
   email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
@@ -34,9 +35,11 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
   const router = useRouter();
+  const [returnTo, setReturnTo] = useState("/");
 
   useEffect(() => {
     const loginUrl = new URL(window.location.href);
+    setReturnTo(getSafeReturnTo(loginUrl.searchParams.get("returnTo")));
     if (loginUrl.searchParams.get("redirect") !== "authentication-required") return;
 
     toast.error("Please log in to access that page.");
@@ -51,7 +54,7 @@ export default function LoginPage() {
       const { error } = await authClient.signIn.email({
         email: data.email,
         password: data.password,
-        callbackURL: "/",
+        callbackURL: returnTo,
       });
 
       if (error) {
@@ -60,7 +63,8 @@ export default function LoginPage() {
       }
 
       toast.success("Logged in successfully!");
-      router.push("/");
+      router.push(returnTo);
+      router.refresh();
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -76,7 +80,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setLoadingAction("google");
     try {
-      await authClient.signIn.social({ provider: "google", callbackURL: "/" });
+      await authClient.signIn.social({ provider: "google", callbackURL: returnTo });
     } catch {
       toast.error("Unable to start Google sign in. Please try again.");
     } finally {
@@ -136,7 +140,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             New to Togetherly?{" "}
-            <Link href="/register" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
+            <Link href={`/register?returnTo=${encodeURIComponent(returnTo)}`} className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
               Create an account <ArrowRight aria-hidden="true" className="size-3.5" />
             </Link>
           </p>

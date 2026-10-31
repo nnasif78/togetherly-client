@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +18,7 @@ import AuthPanel from "@/components/auth-panel";
 import GoogleIcon from "@/components/google-icon";
 import Breadcrumbs from "@/components/breadcrumbs";
 import PasswordRequirements from "@/components/password-requirements";
+import { getSafeReturnTo } from "@/lib/auth-redirect";
 
 
 const registerSchema = z.object({
@@ -44,6 +45,10 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
   const router = useRouter();
+  const [returnTo, setReturnTo] = useState("/");
+  useEffect(() => {
+    setReturnTo(getSafeReturnTo(new URLSearchParams(window.location.search).get("returnTo")));
+  }, []);
   const onSubmit = async (data: RegisterFormData) => {
     setLoadingAction("credentials");
 
@@ -53,7 +58,7 @@ export default function RegisterPage() {
         email: data.email,
         password: data.password,
         image: data.photoURL || undefined,
-        callbackURL: "/",
+        callbackURL: returnTo,
       });
 
       if (error) {
@@ -62,7 +67,8 @@ export default function RegisterPage() {
       }
 
       toast.success("Account created successfully!");
-      router.push("/");
+      router.push(returnTo);
+      router.refresh();
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -78,7 +84,7 @@ export default function RegisterPage() {
   const handleGoogleSignUp = async () => {
     setLoadingAction("google");
     try {
-      await authClient.signIn.social({ provider: "google", callbackURL: "/" });
+      await authClient.signIn.social({ provider: "google", callbackURL: returnTo });
     } catch {
       toast.error("Unable to start Google sign up. Please try again.");
     } finally {
@@ -166,7 +172,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             Already part of Togetherly?{" "}
-            <Link href="/login" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
+            <Link href={`/login?returnTo=${encodeURIComponent(returnTo)}`} className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
               Sign in <ArrowRight aria-hidden="true" className="size-3.5" />
             </Link>
           </p>

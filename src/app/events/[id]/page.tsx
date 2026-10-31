@@ -182,7 +182,7 @@ function EventDetailsContent() {
                     ) : !session ? (
                         <div className="flex flex-wrap items-center gap-3">
                             <p className="text-sm text-muted-foreground">Sign in to join this event.</p>
-                            <Link href="/login" className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_8%)] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+                            <Link href={`/login?returnTo=${encodeURIComponent(`/events/${id}`)}`} className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_8%)] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
                                 <LogIn aria-hidden="true" className="size-4" />
                                 Log in
                             </Link>
