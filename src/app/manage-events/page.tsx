@@ -34,19 +34,24 @@ export default function ManageEventsPage() {
             .finally(() => setLoading(false));
     }, [session?.user.id]);
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this event?")) return;
+    const handleDelete = async (eventId: string) => {
+        if (!session?.user.id) {
+            toast.error("Please log in first.");
+            return;
+        }
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}`, {
                 method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: session.user.id }),
             });
 
             const result = await response.json();
 
             if (!response.ok) throw new Error(result.message);
 
-            setEvents((previousEvents) => previousEvents.filter((event) => event._id !== id));
+            setEvents((previous) => previous.filter((item) => item._id !== eventId));
             toast.success("Event deleted successfully!");
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to delete event.");
