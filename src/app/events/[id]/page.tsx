@@ -26,12 +26,13 @@ export default function EventDetailsPage() {
     const [joining, setJoining] = useState(false);
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/events`)
-            .then((response) => response.json())
-            .then((events: Event[]) => {
-                setEvent(events.find((item) => item._id === id) || null);
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${id}`)
+            .then((response) => {
+                if (!response.ok) throw new Error("Event not found.");
+                return response.json();
             })
-            .catch(() => toast.error("Failed to load event."))
+            .then((data: Event) => setEvent(data))
+            .catch((error) => toast.error(error.message))
             .finally(() => setLoading(false));
     }, [id]);
 
