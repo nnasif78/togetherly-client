@@ -39,7 +39,7 @@
 - Create events, update or delete events you own, and review events you have joined.
 - Switch the site theme and share event links.
 
-The landing page and individual event details are public. Browsing the full event catalogue, joining events, and creating or managing events requires an account.
+The landing page, full event catalogue, and individual event details are public. An account is needed to join events and to create or manage events.
 
 ## How it works
 
@@ -54,15 +54,15 @@ flowchart LR
     A <--> M
 ```
 
-The frontend is a Next.js App Router application. It uses Better Auth for email/password and Google sign-in. For protected API calls, the browser obtains a Better Auth JWT and sends it as a bearer token. The API verifies it against Better Auth's JWKS endpoint before using the authenticated user's ID. The full event catalogue and account actions require authentication; the homepage's recent events and individual event details remain public.
+The frontend is a Next.js App Router application. It uses Better Auth for email/password and Google sign-in. For protected API calls, the browser obtains a Better Auth JWT and sends it as a bearer token. The API verifies it against Better Auth's JWKS endpoint before using the authenticated user's ID. Event browsing and individual event details are public; joining and account actions require authentication.
 
 ## Pages and routes
 
 | Route | What it does | Access |
 | --- | --- | --- |
 | `/` | Landing page and a short list of recent events | Public |
-| `/events` | Upcoming event catalogue with search and cause filters | Signed in |
-| `/events?category=Environment` | Catalogue filtered by category; search is client-side | Signed in |
+| `/events` | Upcoming event catalogue with search and cause filters | Public |
+| `/events?category=Environment` | Catalogue filtered by category; search is client-side | Public |
 | `/events/[id]` | Public event details; sign in to join | Public |
 | `/login` | Email/password or Google sign-in | Public |
 | `/register` | Account creation | Public |
@@ -72,7 +72,7 @@ The frontend is a Next.js App Router application. It uses Better Auth for email/
 | `/joined-events` | Review events you joined | Signed in |
 | `/profile-settings` | Update account profile details | Signed in |
 
-Unknown routes are handled by Next.js. Protected pages redirect unauthenticated visitors to `/login`. The API also enforces JWT authentication on `GET /events`; the client redirect alone is not the access control.
+Unknown routes are handled by Next.js. Protected pages redirect unauthenticated visitors to `/login`; the API enforces authentication on event mutations and account-specific endpoints.
 
 ## Technology
 
