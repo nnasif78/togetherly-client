@@ -39,7 +39,7 @@
 - Create events, update or delete events you own, and review events you have joined.
 - Switch the site theme and share event links.
 
-Public event discovery and event details are available without signing in. An account is needed to join events and to create or manage events.
+The landing page and individual event details are public. Browsing the full event catalogue, joining events, and creating or managing events requires an account.
 
 ## How it works
 
@@ -48,21 +48,21 @@ flowchart LR
     V[Visitor] -->|browse and search| W[Next.js web app]
     V -->|sign in / register| B[Better Auth]
     B <--> M[(MongoDB)]
-    W -->|public event reads| A[Express API]
+    W -->|public recent/detail reads| A[Express API]
     B -->|signed JWT| W
     W -->|Bearer token for protected actions| A
     A <--> M
 ```
 
-The frontend is a Next.js App Router application. It reads public event data from Togetherly's API and uses Better Auth for email/password and Google sign-in. For protected API calls, the browser obtains a Better Auth JWT and sends it as a bearer token. The API verifies it against Better Auth's JWKS endpoint before using the authenticated user's ID.
+The frontend is a Next.js App Router application. It uses Better Auth for email/password and Google sign-in. For protected API calls, the browser obtains a Better Auth JWT and sends it as a bearer token. The API verifies it against Better Auth's JWKS endpoint before using the authenticated user's ID. The full event catalogue and account actions require authentication; the homepage's recent events and individual event details remain public.
 
 ## Pages and routes
 
 | Route | What it does | Access |
 | --- | --- | --- |
 | `/` | Landing page and a short list of recent events | Public |
-| `/events` | Upcoming event catalogue with search and cause filters | Public |
-| `/events?category=Environment` | Catalogue filtered by category; search is client-side | Public |
+| `/events` | Upcoming event catalogue with search and cause filters | Signed in |
+| `/events?category=Environment` | Catalogue filtered by category; search is client-side | Signed in |
 | `/events/[id]` | Public event details; sign in to join | Public |
 | `/login` | Email/password or Google sign-in | Public |
 | `/register` | Account creation | Public |
@@ -72,15 +72,20 @@ The frontend is a Next.js App Router application. It reads public event data fro
 | `/joined-events` | Review events you joined | Signed in |
 | `/profile-settings` | Update account profile details | Signed in |
 
-Unknown routes are handled by Next.js. Protected pages redirect unauthenticated visitors to `/login`.
+Unknown routes are handled by Next.js. Protected pages redirect unauthenticated visitors to `/login`. The API also enforces JWT authentication on `GET /events`; the client redirect alone is not the access control.
 
 ## Technology
 
-- **Web:** Next.js `16.4.3` App Router, React `19.3.0`, TypeScript
-- **Styling and UI:** Tailwind CSS 4, Base UI, Lucide icons, Sonner notifications
-- **Authentication:** Better Auth with MongoDB storage, email/password and Google provider, JWT plugin
-- **API:** [Togetherly Server](https://github.com/nnasif78/togetherly-server), Express 5 on Vercel
-- **Data:** MongoDB
+- **Client runtime:** Next.js `16.4.3` App Router, React `19.3.0`, TypeScript, Node.js, npm
+- **UI and styling:** Tailwind CSS 4, Base UI, shadcn component tooling, `class-variance-authority`, `cn`, `next-themes`, Lucide icons, Sonner notifications
+- **Forms and validation:** React Hook Form, `@hookform/resolvers`, Zod
+- **Authentication:** Better Auth (`better-auth` and MongoDB adapter), email/password and Google OAuth, JWT plugin
+- **Client data access:** MongoDB driver for auth storage; bearer-token requests to the API
+- **Server runtime:** Express 5, Node.js `24.x`, Vercel Node.js functions
+- **Server security and configuration:** `jose` for JWT/JWKS verification, `cors`, `dotenv`
+- **Database:** MongoDB via the `mongodb` Node.js driver
+- **Build and code quality:** TypeScript, ESLint with `eslint-config-next`, Tailwind CSS/Turbopack, React Compiler Babel plugin
+- **Deployments:** Vercel for the Next.js client and Express API
 
 ## Run locally
 
